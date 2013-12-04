@@ -23,7 +23,7 @@ function respond(){
 
 function usage() {
 	cat  <<EOF
-Usage: $0 <command>
+Usage: wcache <command>
 Available commands:
 	start <port>	Start wcache listening on the given port
 	stop <port>	stop wcache

@@ -5,6 +5,18 @@ This shell script is intended to be used as a lightweight proxy. It will cache t
 For example when setting up provisioning scripts for Vagrant, you may require download of large files. This is annoying when you are developing these scripts
 as large file download means slow tests. If you use a small lightweight proxy like *wcache*, you may save the download time, and even work offline.
 
+Install
+=======
+
+Just download wcache script in your personal bin directory. Assuming you have a bin folder in your home, and that it's on your PATH, then you just need
+to run this:
+
+```
+cd ~/bin
+wget https://github.com/albans/wcache/blob/master/wcache
+chmod u+x wcache
+```
+
 Usage
 =====
 
