@@ -1,0 +1,128 @@
+#!/bin/bash
+CACHEDIR=~/.wcache/cache
+WCACHE_HOME=~/.wcache
+DB=~/.wcache/db
+PIDFILE=$WCACHE_HOME/pids
+LOGFILE=$WCACHE_HOME/logs
+
+function log(){
+	t=`date +"%Y-%m-%d %H:%M:%S"`
+	cat | tee >(sed "s/^/$t>> /">>$LOGFILE) 
+}
+
+function respond(){
+	read method file http
+	hash=`echo $file | md5` 
+	if [ ! -e "$CACHEDIR/$hash" ]
+	then
+		echo "$hash	$file" >> $DB 
+		wget --no-proxy -q -O "$CACHEDIR/$hash" $file
+	fi
+	cat "$CACHEDIR/$hash"
+}
+
+function usage() {
+	cat  <<EOF
+Usage: $0 <command>
+Available commands:
+	start <port>	Start wcache listening on the given port
+	stop <port>	stop wcache
+	clear	 	clear cache
+	monitor		tails wcache logs
+	list	 	list wcache entries
+	logs	 	output wcache logs
+	status		list listening instances of wcache
+	help		display this help message.
+EOF
+}
+
+function start() {
+	backpipe_dir=`mktemp -d $WCACHE_HOME/instance.XXXX`
+	backpipe="$backpipe_dir/backpipe"
+	mkfifo $backpipe;
+	pid=$$
+	trap " rm -fr $backpipe_dir" SIGQUIT SIGTERM SIGINT 
+	while [ -e $backpipe ]
+	do
+		nc -l $1  < $backpipe | log | respond > $backpipe
+	done
+}
+function _complain(){
+	echo $1 1>&2
+}
+function _get_pid() {
+	cat $PIDFILE | awk -v p=$1 '{if ($2==p) print $1}'
+}
+if [ ! -d $CACHEDIR ]
+then
+	mkdir -p $CACHEDIR
+	echo > $DB
+	echo > $PIDFILE
+	echo > $LOGFILE
+fi
+
+# start stop clear list help
+if [ $# -lt 1 ] || [ $# -gt 2 ]
+then
+	usage
+else
+	case $1 in
+		"start")
+			if [ $# -eq 2 ] 
+			then
+				_pid=`_get_pid $2`
+				if [ "$_pid" != "" ]
+				then
+					 _complain "wcache is already listening on port $2" 1>&2
+				else
+					start $2 &
+					pid=$!
+					echo "$! $2" >> $PIDFILE
+				fi
+			else
+				_complain "port number expected for start command."
+				usage
+			fi
+			;;
+		"stop")
+			if [ $# -eq 2 ] 
+			then
+				pid=`_get_pid $2`
+				if [ "$pid" == "" ]
+				then
+					_complain "no wcache listening on port $2"
+				else
+					cat $PIDFILE | sed "/^$pid /d" > $PIDFILE
+					kill -- -$( ps opgid= $pid | tr -d ' ' )
+				fi
+			else
+				_complain "port number expected for stop command."
+				usage
+			fi
+			;;
+		"status")
+			cat $PIDFILE
+			;;
+		"list")
+			cat $DB;
+			;;
+		"clear")
+			echo > $DB
+			rm $CACHEDIR/*
+			;;
+		"logs")
+			cat $LOGFILE
+			;;
+		"monitor")
+			tail -f $LOGFILE
+			;;
+		"help")
+			usage
+			;;
+		*)
+			_complain "unknown command $1"
+			usage
+	esac
+fi
+
+
