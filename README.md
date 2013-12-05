@@ -8,13 +8,13 @@ as large file download means slow tests. If you use a small lightweight proxy li
 Install
 =======
 
-Just download wcache script in your personal bin directory. Assuming you have a bin folder in your home, and that it's on your PATH, then you just need
+Just download *wcache* script in your personal bin directory. Assuming you have a bin folder in your home, and that it's on your `PATH`, then you just need
 to run this:
 
 ```
-cd ~/bin
-wget https://github.com/albans/wcache/blob/master/wcache
-chmod u+x wcache
+$ cd ~/bin
+$ wget https://github.com/albans/wcache/blob/master/wcache
+$ chmod u+x wcache
 ```
 
 Usage
@@ -36,7 +36,7 @@ should return something like this
 `7312 9090`
 The first column is the PID of the wcache instance, the second is the port it is listening to.
 
-Finally, when you are done using wcache, you may use the `stop`command to shut down an instance you have previously started. For
+Finally, when you are done using *wcache*, you may use the `stop`command to shut down an instance you have previously started. For
 example, assuming you have previously started an instance on port 9090 with the `start`command, you would shut it down like this:
 
 ```
